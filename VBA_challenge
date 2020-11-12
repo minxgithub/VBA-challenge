@@ -1,0 +1,152 @@
+' Create a script that will loop through all the stocks for one year and output the following information in Summary table 1
+    '1. The ticker symbol
+    '2. Yearly change from the opening price to the closing price
+    '3. Percent change from the opening price to the closing price
+    '4. The total stock volume
+    '5. Conditional formatting on Yearly Change column
+' Bonus: Export the Greatest % increase, % decrease and total volumn in Summary table 2
+    
+Sub Stock()
+
+    ' LOOP THROUGH ALL SHEETS
+    For Each ws In Worksheets
+    
+        ' Determine the Last Row
+        LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+        ' Insert header to Summary table 1
+        ws.Cells(1, 9).Value = "Ticker"
+        ws.Cells(1, 10).Value = "Yearly Change"
+        ws.Cells(1, 11).Value = "Percent Change"
+        ws.Cells(1, 12).Value = "Total Stock Volume"
+
+        ' Create Variables to hold Ticker, Yearly opening price, Yearly closing price, and Total stock volume
+        Dim Ticker As String
+        Dim Yearly_opening As Double
+        Dim Yearly_closing As Double
+        Dim Ticker_Total As Double
+        Ticker_Total = 0
+        
+        ' Insert header to Summary table 2
+        ws.Cells(1, 16).Value = "Ticker"
+        ws.Cells(1, 17).Value = "Value"
+        ws.Cells(2, 15).Value = "Greatest % Increase"
+        ws.Cells(3, 15).Value = "Greatest % Decrease"
+        ws.Cells(4, 15).Value = "Greatest Total Volume"
+
+        ' Create Variables to hold Ticker, Greatest % increase, Greatest % decrease, and Greatest total volume
+        Dim Greatest_Inc_T as String
+        Dim Greatest_Inc as Double
+        Greatest_Inc = 0
+        
+        Dim Greatest_Dec_T as String
+        Dim Greatest_Dec as Double
+        Greatest_Dec = 0
+
+        Dim Greatest_Vol_T as String
+        Dim Greatest_Vol as Double
+        Greatest_Vol = 0
+
+        ' Create a Variable to count summary table 1 row number
+        Dim RowCounter As Integer
+        RowCounter = 2
+             
+        ' Loop through all rows
+        For r = 2 To LastRow
+        
+            ' Check if we are still within the same ticker, if it is not...
+            If ws.Cells(r - 1, 1).Value <> ws.Cells(r, 1).Value Then
+            
+                ' Set the Ticker name
+                Ticker = ws.Cells(r, 1).Value
+            
+                ' Set the Yealy opening price
+                Yearly_opening = ws.Cells(r, 3).Value
+
+                    If Yearly_opening = 0 Then
+                        For m = r to LastRow
+                            If ws.cells(m,3).Value <> 0 Then
+                            Yearly_opening = ws.cells(m,3).Value
+                            exit for
+                            end If
+                        next m
+                    end If
+
+                ' Add to the Total stock volume
+                Ticker_Total = Ticker_Total + ws.Cells(r, 7).Value
+       
+            ElseIf ws.Cells(r + 1, 1).Value <> ws.Cells(r, 1).Value Then
+       
+                ' Set the Yearly closing price
+                Yearly_closing = ws.Cells(r, 6).Value
+            
+                ' Add to the Total stock volume
+                Ticker_Total = Ticker_Total + ws.Cells(r, 7).Value
+            
+                ' Calculate Yearly Change and Percent Change
+                Yearly_Change = Yearly_closing - Yearly_opening
+                Percent_Change = Yearly_Change / Yearly_opening
+                
+                ' Print the Ticker, Yearly Change, Percent Change, and Total Stock Volume in the summary table 1
+                ws.Cells(RowCounter, 9).Value = Ticker
+                ws.Cells(RowCounter, 10).Value = Yearly_Change
+                ws.Cells(RowCounter, 11).Value = Percent_Change
+                ws.Cells(RowCounter, 12).Value = Ticker_Total
+
+                    ' Determine values for Summary table 2
+                    If Percent_Change > Greatest_Inc Then
+                        Greatest_Inc_T = Ticker
+                        Greatest_Inc = Percent_change                        
+                    End If
+
+                    If Percent_Change < Greatest_Dec Then
+                        Greatest_Dec_T = Ticker
+                        Greatest_Dec = Percent_Change                   
+                    End If
+
+                    If Ticker_Total > Greatest_vol Then
+                        Greatest_Vol_T = Ticker
+                        Greatest_vol = Ticker_Total                   
+                    End If
+
+                ' Conditional formatting to highlight positive and negative changes
+                If ws.Cells(RowCounter, 10).Value < 0 Then
+                    ws.Cells(RowCounter, 10).Interior.ColorIndex = 3
+                ElseIf ws.Cells(RowCounter, 10).Value > 0 Then
+                    ws.Cells(RowCounter, 10).Interior.ColorIndex = 4
+                End If
+
+                ' Update the summary table 1 row
+                RowCounter = RowCounter + 1
+            
+                ' Reset Total Stock Volume for new Ticker
+                Ticker_Total = 0
+        
+            ' If the cell immediately following a row has the same ticker
+            Else
+                ' Add to the Total stock volume
+                Ticker_Total = Ticker_Total + ws.Cells(r, 7).Value
+           
+            End If
+    
+        Next r
+        
+        ' Correct the Percentage format in Summary table 1
+        ws.Range("K:K").NumberFormat = "0.00%"
+
+        ' Print the Ticker, Greatest % increase, % decrease, and total volume in the summary table 2
+        ws.cells(2, 16).value = Greatest_Inc_T
+        ws.cells(2, 17).value = Greatest_Inc
+
+        ws.cells(3, 16).value = Greatest_Dec_T
+        ws.cells(3, 17).value = Greatest_Dec
+
+        ws.cells(4, 16).value = greatest_Vol_T
+        ws.cells(4, 17).value = greatest_vol
+        
+        ' Correct the Percentage format in Summary table 2
+        ws.Range("Q2:Q3").NumberFormat = "0.00%"
+
+    Next ws
+
+End Sub
